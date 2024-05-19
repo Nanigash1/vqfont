@@ -236,29 +236,50 @@ class CombTrain_VQ_VAE_dataset(Dataset):
     CombTrain_VQ_VAE_dataset,用于训练components码本的dataset，训练数据从content_font中取
     """
 
-    def __init__(self, root, transform = None):
-        self.img_path = root
+    ''' def __init__(self, font_dirs, transform=None):
+        self.font_dirs = font_dirs
         self.transform = transform
-        self.imgs = self.read_file(self.img_path)
+        self.imgs = []
+        for font_dir in self.font_dirs:
+            self.imgs.extend(self.read_file(font_dir)) '''
         # img = Image.open(self.imgs[0])
         # img = self.transform(img)
         # print(img.shape)
 
+    def __init__(self, train_font_dirs, val_font_dirs, transform=None):
+        self.train_font_dirs = train_font_dirs
+        self.val_font_dirs = val_font_dirs
+        self.transform = transform
+        self.imgs = []
+        for font_dir in self.train_font_dirs:
+            self.imgs.extend([(os.path.join(font_dir, img), "train") for img in os.listdir(font_dir)])
+        for font_dir in self.val_font_dirs:
+            self.imgs.extend([(os.path.join(font_dir, img), "val") for img in os.listdir(font_dir)])
+
+
 
     def read_file(self, path):
-        """从文件夹中读取数据"""
+        """Read data from a folder."""
         files_list = os.listdir(path)
         file_path_list = [os.path.join(path, img) for img in files_list]
         file_path_list.sort()
         return file_path_list
 
 
-    def __getitem__(self, index):
+    '''def __getitem__(self, index):
         img_name = self.imgs[index]
         img = Image.open(img_name)
         if self.transform is not None:
             img = self.transform(img) #Tensor [C H W] [1 128 128]
-        return img
+        return img'''
+
+    def __getitem__(self, index):
+        img_path, split = self.imgs[index]
+        img = Image.open(img_path)
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, split
+
 
     def __len__(self):
 

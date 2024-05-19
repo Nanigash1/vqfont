@@ -129,11 +129,11 @@ def build_meta4train_lmdb(args):
 
     out_dict = getMetaDict(font_chosen)
     with open(dict_save_path, 'w') as fout:
-        json.dump(out_dict, fout, indent=4, ensure_ascii=False)
+        json.dump(out_dict, fout, indent=4, ensure_ascii=True)
 
     valid_dict = save_lmdb(lmdb_path, out_dict)
     with open(trainset_dict_path, "w") as f:
-        json.dump(valid_dict, f, indent=4, ensure_ascii=False)
+        json.dump(valid_dict, f, indent=4, ensure_ascii=True)
 
 
 def build_train_meta(args):
