@@ -7,7 +7,7 @@ import numpy as np
 import os
 import cv2 as cv
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-
+import torch.multiprocessing as mp
 
 class CombTrainDataset(Dataset):
     """
@@ -31,6 +31,10 @@ class CombTrainDataset(Dataset):
 
         self.content_font = content_font
         self.transform = transform  #数据预处理方法
+
+
+
+
 
     def random_get_trg(self, avails, font_name):
         target_list = list(avails[font_name])
@@ -154,7 +158,8 @@ class CombTestDataset(Dataset):
 
         to_int_dict = {"chn": lambda x: int(x, 16),
                        "kor": lambda x: ord(x),
-                       "thai": lambda x: int("".join([f'{ord(each):04X}' for each in x]), 16)
+                       "thai": lambda x: int("".join([f'{ord(each):04X}' for each in x]), 16),
+                       "kazakh": lambda x: ord(x)  # Add Kazakh mapping
                        }
 
         self.to_int = to_int_dict[language.lower()]
@@ -236,50 +241,29 @@ class CombTrain_VQ_VAE_dataset(Dataset):
     CombTrain_VQ_VAE_dataset,用于训练components码本的dataset，训练数据从content_font中取
     """
 
-    ''' def __init__(self, font_dirs, transform=None):
-        self.font_dirs = font_dirs
+    def __init__(self, root, transform = None):
+        self.img_path = root
         self.transform = transform
-        self.imgs = []
-        for font_dir in self.font_dirs:
-            self.imgs.extend(self.read_file(font_dir)) '''
+        self.imgs = self.read_file(self.img_path)
         # img = Image.open(self.imgs[0])
         # img = self.transform(img)
         # print(img.shape)
 
-    def __init__(self, train_font_dirs, val_font_dirs, transform=None):
-        self.train_font_dirs = train_font_dirs
-        self.val_font_dirs = val_font_dirs
-        self.transform = transform
-        self.imgs = []
-        for font_dir in self.train_font_dirs:
-            self.imgs.extend([(os.path.join(font_dir, img), "train") for img in os.listdir(font_dir)])
-        for font_dir in self.val_font_dirs:
-            self.imgs.extend([(os.path.join(font_dir, img), "val") for img in os.listdir(font_dir)])
-
-
 
     def read_file(self, path):
-        """Read data from a folder."""
+        """从文件夹中读取数据"""
         files_list = os.listdir(path)
         file_path_list = [os.path.join(path, img) for img in files_list]
         file_path_list.sort()
         return file_path_list
 
 
-    '''def __getitem__(self, index):
+    def __getitem__(self, index):
         img_name = self.imgs[index]
         img = Image.open(img_name)
         if self.transform is not None:
             img = self.transform(img) #Tensor [C H W] [1 128 128]
-        return img'''
-
-    def __getitem__(self, index):
-        img_path, split = self.imgs[index]
-        img = Image.open(img_path)
-        if self.transform is not None:
-            img = self.transform(img)
-        return img, split
-
+        return img
 
     def __len__(self):
 

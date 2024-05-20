@@ -1,15 +1,15 @@
 use_half: False
-use_ddp: Flase
+use_ddp: False
 
 vae_pth: ./weight/VQ-VAE_Parms_chn_.pth # path/to/save/pre-trained model
 sim_path: ./weight/all_char_similarity_unicode.json # path/to/save/content_similarity
 work_dir: ./results/your_task_name/ # workspace
 data_path: ./results/your_task_name/lmdb/  # path/to/saved/lmdb
-data_meta: ./results/your_task_name/meta/train.json  # meta/train.json
+data_meta: ./results/your_task_name/meta/trainset_ori_meta.json  # meta/train.json
 all_content_json: ./meta/trian_val_all_characters.json
-content_font: "ADOBESONGSTD-LIGHT" # content font
+content_font: "KZ Arial" # content font
 
-num_embeddings: 100
+num_embeddings: 20
 vae_batch_size: 256
 vae_lr: 1e-3
 vae_iter: 10000
@@ -20,8 +20,8 @@ kshot: 3
 num_positive_samples: 2
 
 batch_size: 8 #32
-n_workers: 15
-iter: 500000 # 500000
+n_workers: 0
+iter: 50000 # 500000
 g_lr: 2e-4
 d_lr: 4e-4
 step_size: 10000
