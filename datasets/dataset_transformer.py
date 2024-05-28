@@ -81,7 +81,7 @@ class CombTrainDataset(Dataset):
             trg_imgs = torch.stack([self.env_get(self.env, font_name, uni, self.transform)
                                   for uni in trg_unis],0)
 
-            # trg_imgs = torch.concat([self.env_get(self.env, font_name, uni, self.transform)
+            # trg_imgs = torch.cat([self.env_get(self.env, font_name, uni, self.transform)
             #                         for uni in trg_unis])
 
             # print("trg_imgs", trg_imgs.shape)
@@ -92,7 +92,7 @@ class CombTrainDataset(Dataset):
             content_imgs = torch.stack([self.env_get(self.env, self.content_font, uni, self.transform)
                                       for uni in trg_unis], 0) #从内容字体中选出目标字符
 
-            # content_imgs = torch.concat([self.env_get(self.env, self.content_font, uni, self.transform)
+            # content_imgs = torch.cat([self.env_get(self.env, self.content_font, uni, self.transform)
             #                             for uni in trg_unis])  # 从内容字体中选出目标字符
 
             # print("content_imgs", content_imgs.shape)
@@ -122,15 +122,15 @@ class CombTrainDataset(Dataset):
          trg_ids, trg_uni_ids, trg_imgs, content_imgs, trg_unis, style_sample_index, trg_sample_index,ref_unis ) = zip(*batch)
 
         ret = (
-            torch.concat(style_ids), #做reference的font的index
+            torch.cat(style_ids), #做reference的font的index
             torch.cat(style_imgs,1).unsqueeze_(2), #reference image set
-            torch.concat(trg_ids), #目标font的index，跟reference相同
-            torch.concat(trg_uni_ids), #目标字符的index
+            torch.cat(trg_ids), #目标font的index，跟reference相同
+            torch.cat(trg_uni_ids), #目标字符的index
             torch.cat(trg_imgs,1).unsqueeze_(2), #重构的目标字符图片
             torch.cat(content_imgs,1).unsqueeze_(2), #获取内容的内容字符图片
             trg_unis, #目标的字符
-            torch.concat(style_sample_index),
-            torch.concat(trg_sample_index),
+            torch.cat(style_sample_index),
+            torch.cat(trg_sample_index),
             ref_unis
         )
 
@@ -233,7 +233,7 @@ class CombTestDataset(Dataset):
 
         if left:
             trg_imgs = left[0]
-            ret += (torch.concat(trg_imgs).unsqueeze_(1),)
+            ret += (torch.cat(trg_imgs).unsqueeze_(1),)
 
         return ret
 
@@ -365,7 +365,7 @@ class FixedRefDataset(Dataset):
         )
         if left:
             trg_imgs = left[0]
-            ret += (torch.concat(trg_imgs).unsqueeze_(1),)
+            ret += (torch.cat(trg_imgs).unsqueeze_(1),)
 
         return ret
 
