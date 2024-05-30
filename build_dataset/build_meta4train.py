@@ -47,7 +47,11 @@ def save_lmdb(env_path, font_path_char_dict):
 
                 char_img = Image.fromarray(char_img)
                 img = io.BytesIO()
-                char_img.save(img, format="PNG")
+                if char.isupper():
+                    char_img.save(img, format="PNG")
+                else:
+                    char_img.save(img, format="JPEG")
+
                 img = img.getvalue()
                 lmdb_key = f"{fname}_{uni}".encode("utf-8")
 
