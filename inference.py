@@ -65,7 +65,7 @@ def build_meta4build_dataset(meta_path, img_path_list, content_name, cr_mapping)
     '''
     out_dict_path = meta_path
     out_dict = getMetaDict(img_path_list, content_name, cr_mapping)
-    with open(out_dict_path, 'w') as fout:
+    with open(out_dict_path, 'w', encoding='utf-8') as fout:
         json.dump(out_dict, fout, indent=4, ensure_ascii=False)
     print("dataset meta:", out_dict_path)
 
@@ -78,7 +78,7 @@ def build_testmeta4inference(target_name, target_root, content_name="kaiti_xiant
     save_path = os.path.join(target_root, "test.json")
     avali_set = {}
 
-    with open(meta_file, 'r') as fin:
+    with open(meta_file, 'r', encoding='utf-8') as fin:
         original_meta = json.load(fin)
 
     target_ori_unis = original_meta[target_name]
@@ -89,7 +89,7 @@ def build_testmeta4inference(target_name, target_root, content_name="kaiti_xiant
         "gen_unis": original_meta[content_name],
         "ref_unis": target_ori_unis
     }
-    with open(save_path, 'w') as fout:
+    with open(save_path, 'w', encoding='utf-8') as fout:
         json.dump(test_dict, fout, ensure_ascii=False, indent=4)
     print("test metafile save to ", save_path)
     return save_path, avali_set
@@ -107,10 +107,10 @@ def build_dataset4inference(target_img_path, meta_path, content_root, lmdb_path,
     img_path_list = [target_img_path] + [content_root]
     content_name = os.path.basename(content_root)
     build_meta4build_dataset(meta_path, img_path_list, content_name, cr_mapping)
-    with open(meta_path) as f:
+    with open(meta_path, encoding='utf-8') as f:
         fpc_meta = json.load(f)
     valid_dict = save_lmdb(lmdb_path, fpc_meta)
-    with open(json_path, "w") as f:
+    with open(json_path, "w", encoding='utf-8') as f:
         json.dump(valid_dict, f)
     print("lmdb_path:", lmdb_path)
     print("test meta:", json_path)
@@ -173,7 +173,7 @@ def eval_ckpt(args, cfg, avail, target_root):
 
     bs_component_embeddings = get_codebook_detach(component_objects, cfg["batch_size"])
 
-    with open(cfg.sim_path, 'r+') as file:
+    with open(cfg.sim_path, 'r+', encoding='utf-8') as file:
         chars_sim = file.read()
 
     chars_sim_dict = json.loads(chars_sim)  # 将json格式文件转化为python的字典文件
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     target_name = os.path.basename(target_folder)  # 目标font的名称
     target_root = os.path.join(saving_root, target_name)  # 存放生成的目标font的路径
 
-    with open(cfg.all_content_json, 'r') as f:
+    with open(cfg.all_content_json, 'r', encoding='utf-8') as f:
         cr_mapping = json.load(f)
 
     # create directory

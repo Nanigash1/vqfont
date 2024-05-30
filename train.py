@@ -132,7 +132,7 @@ def train(args, cfg, ddp_gpu=-1):
     trn_dset, trn_loader = get_trn_loader(env,
                                           env_get,
                                           cfg,
-                                          data_meta,
+                                          data_meta["train"],
                                           trn_transform,
                                           num_workers=cfg.n_workers,
                                           shuffle=True,
@@ -215,7 +215,6 @@ def main():
     torch.manual_seed(cfg["seed"])
     train(args, cfg)
 
-import multiprocessing as mp
+
 if __name__ == "__main__":
-    #mp.set_start_method('spawn')
     main()

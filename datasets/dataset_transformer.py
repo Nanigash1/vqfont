@@ -7,7 +7,7 @@ import numpy as np
 import os
 import cv2 as cv
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-import torch.multiprocessing as mp
+
 
 class CombTrainDataset(Dataset):
     """
@@ -20,7 +20,7 @@ class CombTrainDataset(Dataset):
         self.num_Positive_samples = 2 #一种font中取几个样本
         self.k_shot = 3
 
-        with open(all_content_json, 'r') as f:
+        with open(all_content_json, 'r', encoding='utf-8') as f:
             self.all_characters = json.load(f)
 
         self.avails = avails #可用于训练的字体 data_meta["train"]格式为{"fontname1":[charlist],...,fontname2":[charlist]}
@@ -32,22 +32,16 @@ class CombTrainDataset(Dataset):
         self.content_font = content_font
         self.transform = transform  #数据预处理方法
 
-
-
-
-
     def random_get_trg(self, avails, font_name):
         target_list = list(avails[font_name])
         trg_uni = np.random.choice(target_list, self.num_Positive_samples * 4)
         return [str(trg_uni[i]) for i in range(0, self.num_Positive_samples * 4)]
 
     def sample_pair_style(self, font, ref_unis):
-        print(font, ref_unis, sep='\n')
-        print([self.env_get(self.env, font, uni, self.transform) for uni in ref_unis])
+
         try:
             imgs = torch.cat([self.env_get(self.env, font, uni, self.transform) for uni in ref_unis])
-            print([self.env_get(self.env, font, uni, self.transform) for uni in ref_unis])
-            print(imgs.shape)
+            # print(imgs.shape)
         except:
             return None
 
@@ -69,7 +63,7 @@ class CombTrainDataset(Dataset):
             # print(trg_unis)
             # print(ref_unis)
 
-            style_imgs = torch.stack([self.sample_pair_style(font_name, ref_unis[i*3:(i+1)*3]) for i in range(0, self.num_Positive_samples)], 0)
+            style_imgs = torch.stack([self.sample_pair_style(font_name, ref_unis[i*3:(i+1)*3])for i in range(0, self.num_Positive_samples)], 0)
 
             # style_imgs = self.sample_pair_style(font_name, ref_unis) #参考字符的图片,len=3*n,n为正样本数量
             # print("style_imgs",style_imgs.shape)
@@ -160,8 +154,7 @@ class CombTestDataset(Dataset):
 
         to_int_dict = {"chn": lambda x: int(x, 16),
                        "kor": lambda x: ord(x),
-                       "thai": lambda x: int("".join([f'{ord(each):04X}' for each in x]), 16),
-                       "kazakh": lambda x: ord(x)  # Add Kazakh mapping
+                       "thai": lambda x: int("".join([f'{ord(each):04X}' for each in x]), 16)
                        }
 
         self.to_int = to_int_dict[language.lower()]
@@ -286,7 +279,7 @@ class FixedRefDataset(Dataset):
         self.ref_unis = sorted(ref_unis)
         self.fus = [(fname, uni) for fname, unis in target_dict.items() for uni in unis]
         self.k_shot = k_shot
-        with open(all_content_json, 'r') as f:
+        with open(all_content_json, 'r', encoding='utf-8') as f:
             self.cr_mapping = json.load(f)
 
         self.content_font = content_font

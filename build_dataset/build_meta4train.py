@@ -8,6 +8,7 @@ from PIL import Image
 from tqdm import tqdm
 import cv2
 import shutil
+import numpy as np
 
 
 def save_lmdb(env_path, font_path_char_dict):
@@ -18,7 +19,7 @@ def save_lmdb(env_path, font_path_char_dict):
     Returns:
         [json]: {font name: [ch1, ch2, ch3, ch4, ....]}
     """
-    env = lmdb.open(env_path, map_size=1024 ** 4)
+    env = lmdb.open(env_path, map_size=1024 ** 3)
     valid_dict = {}
 
     #write_file = open('log.txt', 'w', encoding='utf-8')
@@ -35,7 +36,13 @@ def save_lmdb(env_path, font_path_char_dict):
             if len(char) == 1:
                 uni = hex(ord(char))[2:].upper()
                 unilist.append(uni)
-                char_img = cv2.imread(img_path, 0)
+                pil_image = Image.open(img_path)
+
+                # Конвертировать изображение в черно-белое
+                pil_image = pil_image.convert('L')
+
+                # Преобразовать изображение в numpy array
+                char_img = np.array(pil_image)
                 # char_img = cv2.resize(char_img, (128, 128))
 
                 char_img = Image.fromarray(char_img)
@@ -128,12 +135,12 @@ def build_meta4train_lmdb(args):
         font_chosen.append(content_font)
 
     out_dict = getMetaDict(font_chosen)
-    with open(dict_save_path, 'w') as fout:
-        json.dump(out_dict, fout, indent=4, ensure_ascii=True)
+    with open(dict_save_path, 'w', encoding='utf-8') as fout:
+        json.dump(out_dict, fout, indent=4, ensure_ascii=False)
 
     valid_dict = save_lmdb(lmdb_path, out_dict)
-    with open(trainset_dict_path, "w") as f:
-        json.dump(valid_dict, f, indent=4, ensure_ascii=True)
+    with open(trainset_dict_path, "w", encoding='utf-8') as f:
+        json.dump(valid_dict, f, indent=4, ensure_ascii=False)
 
 
 def build_train_meta(args):
@@ -146,11 +153,11 @@ def build_train_meta(args):
     save_path = os.path.join(train_meta_root, "train.json")
     meta_file = os.path.join(train_meta_root, "trainset_dict.json")
 
-    with open(meta_file, 'r') as f_in:
+    with open(meta_file, 'r', encoding='utf-8') as f_in:
         original_meta = json.load(f_in)
-    with open(args.seen_unis_file) as f:
+    with open(args.seen_unis_file, encoding='utf-8') as f:
         seen_unis = json.load(f)
-    with open(args.unseen_unis_file) as f:
+    with open(args.unseen_unis_file, encoding='utf-8') as f:
         unseen_unis = json.load(f)
 
     # all font names
@@ -192,7 +199,7 @@ def build_train_meta(args):
         "unseen_unis": unseen_unis,
     }
 
-    with open(save_path, 'w') as fout:
+    with open(save_path, 'w', encoding='utf-8') as fout:
         json.dump(train_dict, fout, ensure_ascii=False, indent=4)
 
 

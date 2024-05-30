@@ -56,17 +56,10 @@ def get_cv_comb_loaders(env, env_get, cfg, data_meta, transform, **kwargs):
     n_unis = cfg.cv_n_unis
     n_fonts = cfg.cv_n_fonts
 
-    font_names = list(data_meta.keys())  # Get list of font names (vFKCass, vFKAuntBertha, etc.)
-    ufs = uniform_sample(font_names, n_fonts)
-    sfs = uniform_sample(font_names, n_fonts)
-
-   # ufs = uniform_sample(data_meta, n_fonts)
-   # sfs = uniform_sample(data_meta, n_fonts)
-    # Assuming 'avail' is still in data_meta for the availability information:
-    sus = uniform_sample(list(data_meta[font_names[0]]["charlist"]), n_unis)
-    uus = uniform_sample(list(data_meta[font_names[0]]["charlist"]), n_unis)
-    #sus = uniform_sample(data_meta, n_unis)  # ['6E6B']
-    #uus = uniform_sample(data_meta, n_unis)  # ['6E6B']
+    ufs = uniform_sample(data_meta["valid"]["unseen_fonts"], n_fonts)
+    sfs = uniform_sample(data_meta["valid"]["seen_fonts"], n_fonts)
+    sus = uniform_sample(data_meta["valid"]["seen_unis"], n_unis)  # ['6E6B']
+    uus = uniform_sample(data_meta["valid"]["unseen_unis"], n_unis)  # ['6E6B']
 
     sfsu_dict = {fname: sus for fname in sfs}  # 见过的字符见过的字体 6x20
     sfuu_dict = {fname: uus for fname in sfs}  # 没有见过的字符见过字体 6x20
@@ -74,10 +67,10 @@ def get_cv_comb_loaders(env, env_get, cfg, data_meta, transform, **kwargs):
     ufuu_dict = {fname: uus for fname in ufs}  # 没有见过的字符和字体 6x20
 
     cv_loaders = {
-        'sfsu': get_comb_test_loader(env, env_get, sfsu_dict, cfg, data_meta, transform, **kwargs)[1],
-        'sfuu': get_comb_test_loader(env, env_get, sfuu_dict, cfg, data_meta, transform, **kwargs)[1],
-        'ufsu': get_comb_test_loader(env, env_get, ufsu_dict, cfg, data_meta, transform, **kwargs)[1],
-        'ufuu': get_comb_test_loader(env, env_get, ufuu_dict, cfg, data_meta, transform, **kwargs)[1]
+        'sfsu': get_comb_test_loader(env, env_get, sfsu_dict, cfg, data_meta['avail'], transform, **kwargs)[1],
+        'sfuu': get_comb_test_loader(env, env_get, sfuu_dict, cfg, data_meta['avail'], transform, **kwargs)[1],
+        'ufsu': get_comb_test_loader(env, env_get, ufsu_dict, cfg, data_meta['avail'], transform, **kwargs)[1],
+        'ufuu': get_comb_test_loader(env, env_get, ufuu_dict, cfg, data_meta['avail'], transform, **kwargs)[1]
         }
 
     return cv_loaders
