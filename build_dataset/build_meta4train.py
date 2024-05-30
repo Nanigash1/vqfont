@@ -19,7 +19,7 @@ def save_lmdb(env_path, font_path_char_dict):
     Returns:
         [json]: {font name: [ch1, ch2, ch3, ch4, ....]}
     """
-    env = lmdb.open(env_path, map_size=1024 ** 3)
+    env = lmdb.open(env_path, map_size=(1024 ** 3)*3)
     valid_dict = {}
 
     #write_file = open('log.txt', 'w', encoding='utf-8')
@@ -31,7 +31,7 @@ def save_lmdb(env_path, font_path_char_dict):
             img_path = os.path.join(fontpath, char + '.png')
             if not os.path.exists(img_path):
                 img_path = os.path.join(fontpath, char + '.jpg')
-                print(img_path)
+            
 
             if len(char) == 1:
                 uni = hex(ord(char))[2:].upper()
