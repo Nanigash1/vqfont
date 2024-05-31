@@ -63,7 +63,15 @@ class CombTrainDataset(Dataset):
             # print(trg_unis)
             # print(ref_unis)
 
-            style_imgs = torch.stack([self.sample_pair_style(font_name, ref_unis[i*3:(i+1)*3])for i in range(0, self.num_Positive_samples)], 0)
+            style_imgs = []
+            for i in range(0, self.num_Positive_samples):
+                style_img_batch = self.sample_pair_style(font_name, ref_unis[i*3:(i+1)*3])
+                if style_img_batch is not None:
+                    style_imgs.append(style_img_batch)
+                else:
+                    print(f'style_img_batch: {style_img_batch} is None')
+            style_imgs = torch.stack(style_imgs, 0) if style_imgs else None  # Handle the case where all batches are None
+
 
             # style_imgs = self.sample_pair_style(font_name, ref_unis) #参考字符的图片,len=3*n,n为正样本数量
             # print("style_imgs",style_imgs.shape)

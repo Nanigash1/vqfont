@@ -51,7 +51,8 @@ class Get_style_components(nn.Module):
         residual = query
         query = self.get_component_query(query)  # b m d n
         # query[b m d n]  key[b m khw d_channel]   value[b m khw d_channel]
-        scores = torch.matmul(key, query)  # [b m khw n]
+        d_k = query.size(-1)
+        scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)  # Scaled dot-product attention  # [b m khw n]
         scores = rearrange(scores, 'b m khw n -> b m n khw')
         p_attn = F.softmax(scores, dim=-1)
 
@@ -155,4 +156,26 @@ class ComponentAttentiomModule(nn.Module):
         # 再根据参考风格图像和内容图像做一个相似度，将相似度权重加权加到变换后的特征；[b 3c h w]
 
         return transfer_feature
+    
+
+
+class SelfAttention2d(nn.Module):
+    def __init__(self, in_channels):
+        super(SelfAttention2d, self).__init__()
+        self.query_conv = nn.Conv2d(in_channels, in_channels // 8, kernel_size=1)
+        self.key_conv = nn.Conv2d(in_channels, in_channels // 8, kernel_size=1)
+        self.value_conv = nn.Conv2d(in_channels, in_channels, kernel_size=1)
+        self.gamma = nn.Parameter(torch.zeros(1))
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, x):
+        B, C, H, W = x.size()
+        query = self.query_conv(x).view(B, -1, H * W).permute(0, 2, 1)  # B x (H*W) x C
+        key = self.key_conv(x).view(B, -1, H * W)  # B x C x (H*W)
+        value = self.value_conv(x).view(B, -1, H * W)  # B x C x (H*W)
+
+        attn = self.softmax(torch.bmm(query, key))  # B x (H*W) x (H*W)
+        out = torch.bmm(value, attn.permute(0, 2, 1)).view(B, C, H, W)  # B x C x H x W
+        return self.gamma * out + x
+
 

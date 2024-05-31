@@ -126,7 +126,7 @@ class ResBlock(nn.Module):
 
         # XXX upsample / downsample needs skip conv?
         if C_in != C_out or upsample or downsample:
-            self.skip = w_norm(nn.Conv2d(C_in, C_out, 1))
+            self.skip = w_norm(nn.Conv2d(C_in, C_out, 1, bias=False))  # Add bias=False
 
     def forward(self, x):
         """

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from model.decoder import dec_builder, Integrator
 from model.content_encoder import content_enc_builder
 from model.references_encoder import comp_enc_builder
-from model.Component_Attention_Module import ComponentAttentiomModule, Get_style_components
+from model.Component_Attention_Module import ComponentAttentiomModule, Get_style_components, SelfAttention2d
 from model.memory import Memory
 
 
@@ -90,6 +90,8 @@ class Generator(nn.Module):
 
         # 融合全局的风格特征global_feature
         global_style_features = self.Get_style_global(trg_unis, ref_unis, reference_feats, chars_sim_dict)
+        # Apply self-attention to the global style features
+        global_style_features = SelfAttention2d(global_style_features.size(1))(global_style_features)
         all_features = self.Integrator(sr_features, content_feats, global_style_features)
         # all_features = self.Integrator_infer(sr_features, content_feats, None)
         out = self.decoder(all_features)  # 解码器生成图片
@@ -198,6 +200,8 @@ class Generator(nn.Module):
 
         if k_shot_tag:
             global_style_features = self.Get_style_global(trg_unis, ref_unis, reference_feats, chars_sim_dict)
+            # Apply self-attention to the global style features
+            global_style_features = SelfAttention2d(global_style_features.size(1))(global_style_features)
             all_features = self.Integrator(sr_features, content_feats, global_style_features)
             # all_features = self.Integrator_infer(sr_features, content_feats, None)
         else:
