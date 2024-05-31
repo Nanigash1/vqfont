@@ -146,18 +146,12 @@ class Generator(nn.Module):
         B, K, C, H, W = reference_feats.shape
         global_feature = torch.zeros([B, C, H, W]).cuda()
         for i in range(0, B):
-            distance_0 = chars_sim_dict[list_trg_chars[i]][list_ref_unis[i][0]]
+            distances = [chars_sim_dict[list_trg_chars[i]][uni] for uni in list_ref_unis[i]]
+            weights = torch.tensor(distances)
+            t = 1  # Temperature parameter (you can adjust this)
+            weights = F.softmax(weights / t, dim=0)
+            global_feature[i] = torch.sum(reference_feats[i] * weights.view(-1, 1, 1, 1), dim=0)
 
-            distance_1 = chars_sim_dict[list_trg_chars[i]][list_ref_unis[i][1]]
-
-            distance_2 = chars_sim_dict[list_trg_chars[i]][list_ref_unis[i][2]]
-
-            weight = torch.tensor([distance_0, distance_1, distance_2])
-            t = 1
-            weight = F.softmax(weight / t, dim=0)
-
-            global_feature[i] = reference_feats[i][0] * weight[0] + reference_feats[i][1] * weight[1] \
-                                + reference_feats[i][2] * weight[2]
 
         return global_feature
 
