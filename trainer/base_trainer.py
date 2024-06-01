@@ -3,6 +3,8 @@ import random
 import torch.nn.functional as F
 import utils
 from pathlib import Path
+import torchvision.transforms as T
+import torchvision
 from .trainer_utils import *
 try:
     from apex import amp
@@ -101,16 +103,54 @@ class BaseTrainer:
         loss2 = F.l1_loss(self_infer, target, reduction="mean") * self.cfg['pixel_w']
         self.g_losses['pixel'] = loss1 + loss2
         return loss1 + loss2
+    
+    def add_perceptual_loss(self, out, target, vgg_model):
+        """
+        Calculates the perceptual loss between the generated image (`out`) and the target image (`target`) using a pre-trained VGG network (`vgg_model`).
+        """
+        if self.cfg['perceptual_w'] == 0.:
+            return 0.
+
+        # Convert single channel to 3 channels
+        if out.shape[1] == 1:
+            out = out.repeat(1, 3, 1, 1)
+        if target.shape[1] == 1:
+            target = target.repeat(1, 3, 1, 1)
+
+        # Transform to the required input for VGG
+        transform = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        out = transform(out)
+        target = transform(target)
+
+        # Extract features from VGG19 at multiple layers
+        out_features = vgg_model(out)
+        target_features = vgg_model(target)
+
+        # Calculate the mean squared error between the features at each layer
+        perceptual_loss = 0.0
+        for out_feat, target_feat in zip(out_features, target_features):
+            perceptual_loss += F.mse_loss(out_feat, target_feat, reduction="mean")
+
+        # Weight the perceptual loss
+        perceptual_loss *= self.cfg['perceptual_w']
+
+        # Add the perceptual loss to the generator losses
+        self.g_losses['perceptual'] = perceptual_loss
+
+        return perceptual_loss
+
+
+
 
     def compute_contrastive_loss(self, feat_q, feat_k, tau, index):
         """
         compute_contrastive_loss
         """
         out = torch.mm(feat_q, feat_k.transpose(1, 0)) / tau
-        # loss = self.cross_entropy_loss(out, torch.zeros(out.size(0), dtype=torch.long, device=feat_q.device))
         loss = self.cross_entropy_loss(out, torch.tensor([index], dtype=torch.long, device=feat_q.device))
 
         return loss
+
 
     def take_contrastive_feature(self, input):
         # out = self.enc_style(input)

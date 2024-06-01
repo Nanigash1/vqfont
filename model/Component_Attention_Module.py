@@ -51,8 +51,7 @@ class Get_style_components(nn.Module):
         residual = query
         query = self.get_component_query(query)  # b m d n
         # query[b m d n]  key[b m khw d_channel]   value[b m khw d_channel]
-        d_k = query.size(-1)
-        scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)  # Scaled dot-product attention  # [b m khw n]
+        scores = torch.matmul(key, query)  # [b m khw n]
         scores = rearrange(scores, 'b m khw n -> b m n khw')
         p_attn = F.softmax(scores, dim=-1)
 
@@ -177,5 +176,7 @@ class SelfAttention2d(nn.Module):
         attn = self.softmax(torch.bmm(query, key))  # B x (H*W) x (H*W)
         out = torch.bmm(value, attn.permute(0, 2, 1)).view(B, C, H, W)  # B x C x H x W
         return self.gamma * out + x
+
+
 
 

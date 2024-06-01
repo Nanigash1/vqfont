@@ -2,7 +2,7 @@ from .base_trainer import BaseTrainer
 import utils
 from datasets import cyclize
 import torch
-
+import torchvision
 torch.autograd.set_detect_anomaly = True
 
 
@@ -15,6 +15,21 @@ class CombinedTrainer(BaseTrainer):
                  logger, evaluator, cv_loaders, cfg):  # cls_char
         super().__init__(gen, disc, g_optim, d_optim, g_scheduler, d_scheduler,
                          logger, evaluator, cv_loaders, cfg)
+        # Load pre-trained VGG19 model
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        # Загрузка предобученной модели VGG19
+        self.vgg_model = torchvision.models.vgg19(weights='IMAGENET1K_V1').features
+        self.vgg_model.eval()  # Переключение в режим оценки
+        self.vgg_model.to(self.device)  # Перемещение на устройство
+    def compute_contrastive_loss(self, feat_q, feat_k, tau, index):
+        """
+        compute_contrastive_loss
+        """
+        out = torch.mm(feat_q, feat_k.transpose(1, 0)) / tau
+        loss = self.cross_entropy_loss(out, torch.tensor([index], dtype=torch.long, device=feat_q.device))
+
+        return loss
 
     def train(self, loader, st_step=1, max_step=100000, component_embeddings=None, chars_sim_dict=None):
         # loader中存放了一个batch的数据
@@ -26,7 +41,7 @@ class CombinedTrainer(BaseTrainer):
             self.disc.train()
 
         # loss stats
-        losses = utils.AverageMeters("g_total", "pixel", "disc", "gen", "contrastive")
+        losses = utils.AverageMeters("g_total", "pixel", "disc", "gen", "contrastive", "perceptual")
         # discriminator stats
         discs = utils.AverageMeters("real_font", "real_uni", "fake_font", "fake_uni")
         # etc stats
@@ -124,6 +139,8 @@ class CombinedTrainer(BaseTrainer):
                                     fake_uni + fake_uni_recon)
                 self.add_pixel_loss(out_1, trg_imgs[0], self_infer_imgs)
                 self.style_contrastive_loss(style_components_1, style_components_2, self.batch_size)
+                # Calculate perceptual loss
+                self.add_perceptual_loss(out_1, trg_imgs[0], self.vgg_model)
 
                 # 生成器参数反向传播并更新(固定辨别器的参数)
                 self.g_backward()  # 计算反向传播求解梯度
@@ -173,7 +190,7 @@ class CombinedTrainer(BaseTrainer):
 
     def log(self, losses, discs, stats):
         self.logger.info(
-            "  Step {step:7d}: L1 {L.pixel.avg:7.4f}   Contrastive {L.contrastive.avg:7.4f}"
+            "  Step {step:7d}: L1 {L.pixel.avg:7.4f}   Contrastive {L.contrastive.avg:7.4f} Perceptual {L.perceptual.avg:7.4f}"
             "  D {L.disc.avg:7.3f}  G {L.gen.avg:7.3f}"
             "  B_stl {S.B_style.avg:5.1f}  B_trg {S.B_target.avg:5.1f}"
             .format(step=self.step, L=losses, D=discs, S=stats))

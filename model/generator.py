@@ -44,6 +44,8 @@ class Generator(nn.Module):
         self.Integrator = Integrator(C * 8, **integrator_args, C_content=C_content, C_reference=C_reference)
 
         self.Integrator_local = Integrator(C * 8, **integrator_args, C_content=C_content, C_reference=0)
+        # Ensure SelfAttention2d instance is created
+        self.self_attention = SelfAttention2d(C * 8).to(torch.device('cuda' if torch.cuda.is_available() else 'cpu')) 
 
     def reset_memory(self):
         """
@@ -91,7 +93,7 @@ class Generator(nn.Module):
         # 融合全局的风格特征global_feature
         global_style_features = self.Get_style_global(trg_unis, ref_unis, reference_feats, chars_sim_dict)
         # Apply self-attention to the global style features
-        global_style_features = SelfAttention2d(global_style_features.size(1))(global_style_features)
+        global_style_features = self.self_attention(global_style_features)  # Use the instance instead of creating a new one
         all_features = self.Integrator(sr_features, content_feats, global_style_features)
         # all_features = self.Integrator_infer(sr_features, content_feats, None)
         out = self.decoder(all_features)  # 解码器生成图片
@@ -147,7 +149,7 @@ class Generator(nn.Module):
         global_feature = torch.zeros([B, C, H, W]).cuda()
         for i in range(0, B):
             distances = [chars_sim_dict[list_trg_chars[i]][uni] for uni in list_ref_unis[i]]
-            weights = torch.tensor(distances)
+            weights = torch.tensor(distances).to(reference_feats.device)  # Move weights to the same device as reference_feats
             t = 1  # Temperature parameter (you can adjust this)
             weights = F.softmax(weights / t, dim=0)
             global_feature[i] = torch.sum(reference_feats[i] * weights.view(-1, 1, 1, 1), dim=0)
@@ -195,7 +197,7 @@ class Generator(nn.Module):
         if k_shot_tag:
             global_style_features = self.Get_style_global(trg_unis, ref_unis, reference_feats, chars_sim_dict)
             # Apply self-attention to the global style features
-            global_style_features = SelfAttention2d(global_style_features.size(1))(global_style_features)
+            global_style_features = self.self_attention(global_style_features)  # Use the instance instead of creating a new one
             all_features = self.Integrator(sr_features, content_feats, global_style_features)
             # all_features = self.Integrator_infer(sr_features, content_feats, None)
         else:

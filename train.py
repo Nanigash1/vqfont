@@ -168,8 +168,9 @@ def train(args, cfg, ddp_gpu=-1):
     else:
         disc = None
 
-    g_optim = optim.Adam(gen.parameters(), lr=cfg.g_lr, betas=cfg.adam_betas)
-    d_optim = optim.Adam(disc.parameters(), lr=cfg.d_lr, betas=cfg.adam_betas)
+    g_optim = optim.AdamW(gen.parameters(), lr=cfg.g_lr, betas=cfg.adam_betas, weight_decay=1e-4)  # AdamW with weight decay
+    d_optim = optim.AdamW(disc.parameters(), lr=cfg.d_lr, betas=cfg.adam_betas, weight_decay=1e-4) if disc is not None else None
+
     gen_scheduler = torch.optim.lr_scheduler.StepLR(g_optim, step_size=cfg['step_size'], gamma=cfg['gamma'])
     dis_scheduler = torch.optim.lr_scheduler.StepLR(d_optim, step_size=cfg['step_size'], gamma=cfg['gamma']) \
         if disc is not None else None
