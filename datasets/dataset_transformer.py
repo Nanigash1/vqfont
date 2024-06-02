@@ -303,7 +303,7 @@ class FixedRefDataset(Dataset):
         to_int_dict = {"chn": lambda x: int(x, 16),
                        "kor": lambda x: ord(x),
                        "thai": lambda x: int("".join([f'{ord(each):04X}' for each in x]), 16),
-                       "Kz_eng": lambda x: int(x, 16)
+                       "kz_eng": lambda x: int(x, 16)
                        }
 
         self.to_int = to_int_dict[language.lower()]
