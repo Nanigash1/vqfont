@@ -1,7 +1,5 @@
 import subprocess
-import gdown
-import zipfile
-import os
+
 
 def download_zip():
     def convert_drive_url(original_url):
@@ -16,16 +14,16 @@ def download_zip():
     print(converted_url)
 
     # Путь для сохранения файла в Colab
-    output = '/Gabi2/vqfont/'
+    output = 'results16500_b32.zip'
     # Загрузка файла
     gdown.download(converted_url, output, quiet=False)
 
 def extract_zip():
     # Путь к загруженному архиву
-    zip_path = '/vqfont/results15000_b32.zip'
+    zip_path = 'results16500_b32.zip'
 
     # Путь для сохранения папки result
-    extract_path = '/vqfont/results'
+    extract_path = 'results'
 
     # Функция для извлечения только нужной папки
     def extract_specific_folder(zip_path, extract_path, folder_name):
@@ -46,7 +44,7 @@ def extract_zip():
                             target.write(source.read())
 
     # Извлечение только папки result
-    extract_specific_folder(zip_path, extract_path, '/vqfont/')
+    extract_specific_folder(zip_path, extract_path, '/Gabi2/vqfont/')
 
 def install_dependencies():
     """Installs the required Python packages using pip."""
@@ -57,7 +55,12 @@ def install_dependencies():
 
 def install_dependencies2():
     """Installs the required Python packages using pip."""
-    packages = ['gdown', 'zipfile', 'subprocess']
+    packages = ['gdown']
+    subprocess.run(["pip", "install"] + packages)
+
+def install_dependencies3():
+    """Installs the required Python packages using pip."""
+    packages = ['zipfile', 'subprocess']
     subprocess.run(["pip", "install"] + packages)
 
 def run_training():
@@ -67,6 +70,10 @@ def run_training():
 if __name__ == "__main__":
     install_dependencies()
     install_dependencies2()
+    install_dependencies3()
+    import gdown
+    import zipfile
+    import os
     download_zip()
     extract_zip()
     run_training()
