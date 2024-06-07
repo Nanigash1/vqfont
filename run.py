@@ -22,10 +22,10 @@ def download_zip():
 
 def extract_zip():
     # Путь к загруженному архиву
-    zip_path = '/Gabi2/vqfont/results15000_b32.zip'
+    zip_path = '/vqfont/results15000_b32.zip'
 
     # Путь для сохранения папки result
-    extract_path = '/Gabi2/vqfont/results'
+    extract_path = '/vqfont/results'
 
     # Функция для извлечения только нужной папки
     def extract_specific_folder(zip_path, extract_path, folder_name):
@@ -46,7 +46,7 @@ def extract_zip():
                             target.write(source.read())
 
     # Извлечение только папки result
-    extract_specific_folder(zip_path, extract_path, '/Gabi2/vqfont/')
+    extract_specific_folder(zip_path, extract_path, '/vqfont/')
 
 def install_dependencies():
     """Installs the required Python packages using pip."""
