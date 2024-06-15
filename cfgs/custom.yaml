@@ -33,6 +33,6 @@ cv_n_unis: 20 # 30
 cv_n_fonts: 9 # 10
 
 print_freq: 100
-val_freq: 500
-save_freq: 1000
-tb_freq: 100
+val_freq: 5000
+save_freq: 5000
+tb_freq: 1000
