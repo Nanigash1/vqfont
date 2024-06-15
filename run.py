@@ -1,5 +1,7 @@
 import subprocess
-
+import gdown
+import zipfile
+import os
 
 def download_zip():
     def convert_drive_url(original_url):
@@ -14,37 +16,35 @@ def download_zip():
     print(converted_url)
 
     # Путь для сохранения файла в Colab
-    output = 'results16500_b32.zip'
+    output = '/results16500_b32.zip'
     # Загрузка файла
     gdown.download(converted_url, output, quiet=False)
 
 def extract_zip():
-    # Путь к загруженному архиву
-    zip_path = 'results16500_b32.zip'
+    # Path to the downloaded archive
+    zip_path = '/results16500_b32.zip'
 
-    # Путь для сохранения папки result
+    # Path to save the extracted folder
     extract_path = 'results'
 
-    # Функция для извлечения только нужной папки
+    # Function to extract only the required folder
     def extract_specific_folder(zip_path, extract_path, folder_name):
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             for member in zip_ref.namelist():
+                print(f'Found member: {member}')  # Debugging line
                 if member.startswith(folder_name):
-                    # Получаем относительный путь внутри архива
-                    relative_path = os.path.relpath(member, folder_name)
-                    # Вычисляем полный путь для извлечения
-                    target_path = os.path.join(extract_path, relative_path)
-                    # Создаем папки, если их нет
-                    if not os.path.exists(os.path.dirname(target_path)):
-                        os.makedirs(os.path.dirname(target_path))
-                    # Пропускаем директории
+                    # Compute the target path
+                    target_path = os.path.join(extract_path, os.path.relpath(member, folder_name))
+                    # Create directories if they don't exist
+                    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                    # Skip directories
                     if not member.endswith('/'):
-                        # Извлекаем файл
+                        # Extract the file
                         with zip_ref.open(member) as source, open(target_path, 'wb') as target:
                             target.write(source.read())
 
-    # Извлечение только папки result
-    extract_specific_folder(zip_path, extract_path, '/Gabi2/vqfont/')
+    # Extract only the folder 'vqfont/'
+    extract_specific_folder(zip_path, extract_path, 'content/vqfont/results')
 
 def install_dependencies():
     """Installs the required Python packages using pip."""
@@ -71,9 +71,6 @@ if __name__ == "__main__":
     install_dependencies()
     install_dependencies2()
     install_dependencies3()
-    import gdown
-    import zipfile
-    import os
     download_zip()
     extract_zip()
     run_training()
