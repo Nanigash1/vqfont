@@ -65,7 +65,7 @@ def install_dependencies3():
 
 def run_training():
     """Executes the vqfont training script."""
-    subprocess.run(["python", "train.py", "test", "cfgs/custom.yaml", "--resume", "/results/your_task_name/checkpoints/test/last.pth"])
+    subprocess.run(["python", "train.py", "test", "cfgs/custom.yaml", "--resume", "./results/your_task_name/checkpoints/test/last.pth"])
 
 if __name__ == "__main__":
     install_dependencies()
